@@ -1,0 +1,339 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinay Kumar | Portfolio</title>
+<link rel="stylesheet" href="profile.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+</style>
+</head>
+
+<body>
+
+<script>
+
+
+const GITHUB_USERNAME = 'your-github-username';
+const GITHUB_TOKEN = 'your-github-token'; // Optional: for higher rate limits
+const LINKEDIN_PROFILE = 'your-profile'; // LinkedIn profile ID or URL
+
+// Fetch GitHub Activity
+async function fetchGitHubActivity() {
+    try {
+        const headers = GITHUB_TOKEN ? { 'Authorization': `token ${GITHUB_TOKEN}` } : {};
+        
+        // Get user events
+        const eventsResponse = await fetch(
+            `https://api.github.com/users/${GITHUB_USERNAME}/events/public?per_page=100`,
+            { headers }
+        );
+        
+        if (!eventsResponse.ok) {
+            throw new Error('GitHub API error');
+        }
+        
+        const events = await eventsResponse.json();
+        analyzeGitHubActivity(events);
+    } catch (error) {
+        console.error('Error fetching GitHub data:', error);
+        updateMetricsWithDefaultData();
+    }
+}
+
+// Analyze GitHub Activity and Calculate Metrics
+function analyzeGitHubActivity(events) {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    // Count posts/commits this week
+    const thisWeekEvents = events.filter(event => {
+        return new Date(event.created_at) >= sevenDaysAgo;
+    });
+    
+    // Calculate streak
+    let streak = 0;
+    const activityByDay = {};
+    
+    events.forEach(event => {
+        const eventDate = new Date(event.created_at).toLocaleDateString();
+        activityByDay[eventDate] = (activityByDay[eventDate] || 0) + 1;
+    });
+    
+    // Calculate current streak
+    let currentDate = new Date();
+    for (let i = 0; i < 365; i++) {
+        const dateStr = currentDate.toLocaleDateString();
+        if (activityByDay[dateStr]) {
+            streak++;
+            currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+            break;
+        }
+    }
+    
+    // Calculate posting frequency (posts per week)
+    const frequency = (thisWeekEvents.length).toFixed(1);
+    
+    // Find most active day
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const activityByDayOfWeek = {};
+    
+    events.slice(0, 100).forEach(event => {
+        const day = new Date(event.created_at).getDay();
+        activityByDayOfWeek[day] = (activityByDayOfWeek[day] || 0) + 1;
+    });
+    
+    const mostActiveDay = dayNames[Object.keys(activityByDayOfWeek).reduce((a, b) => 
+        activityByDayOfWeek[a] > activityByDayOfWeek[b] ? a : b
+    )];
+    
+    // Update UI
+    document.getElementById('postsThisWeek').textContent = thisWeekEvents.length;
+    document.getElementById('weekProgressBar').style.width = Math.min(thisWeekEvents.length * 10, 100) + '%';
+    document.getElementById('currentStreak').textContent = streak + ' days';
+    document.getElementById('postingFrequency').textContent = frequency + '/week';
+    document.getElementById('mostActiveDay').textContent = mostActiveDay;
+    
+    // Update activity chart
+    updateActivityChart(activityByDayOfWeek);
+}
+
+// Update Activity Chart with Real Data
+function updateActivityChart(activityByDayOfWeek) {
+    const chart = document.getElementById('activityChart');
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const dayOfWeekMap = [1, 2, 3, 4, 5, 6, 0]; // Map to correct days
+    
+    const bars = chart.querySelectorAll('.chart-bar');
+    const maxActivity = Math.max(...Object.values(activityByDayOfWeek), 1);
+    
+    bars.forEach((bar, index) => {
+        const dayOfWeek = dayOfWeekMap[index];
+        const activity = activityByDayOfWeek[dayOfWeek] || 0;
+        const percentage = (activity / maxActivity) * 100;
+        bar.style.height = Math.max(percentage, 10) + '%';
+    });
+}
+
+// Default Data for Testing
+function updateMetricsWithDefaultData() {
+    document.getElementById('postsThisWeek').textContent = '5';
+    document.getElementById('weekProgressBar').style.width = '50%';
+    document.getElementById('currentStreak').textContent = '12 days';
+    document.getElementById('postingFrequency').textContent = '4/week';
+    document.getElementById('mostActiveDay').textContent = 'Friday';
+}
+
+// Load data when page loads
+window.addEventListener('load', function() {
+    if (GITHUB_USERNAME !== 'your-github-username') {
+        fetchGitHubActivity();
+    } else {
+        updateMetricsWithDefaultData();
+    }
+});
+</script>
+
+<header>
+    <div class="header-top">
+        <div class="header-left">
+            <div class="avatar">VK</div>
+            <div class="header-info">
+                <h1>Vinay Kumar</h1>
+                <p>Computer Science Student | Java Developer | Web Development Enthusiast</p>
+            </div>
+        </div>
+        <nav class="navbar">
+            <a href="#about">About</a>
+            <a href="#daily-consistency">Daily Consistency</a>
+            <a href="#education">Education</a>
+            <a href="#skills">Skills</a>
+            <a href="#contact">Contact Us</a>
+        </nav>
+    </div>
+</header>
+
+<div class="container">
+
+<section id="about">
+    <h2>About Me</h2>
+    <p>
+        Hello! I am Vinay Kumar, a passionate Computer Science student.
+        I enjoy learning new technologies, building web applications,
+        and solving programming problems. My goal is to become a skilled
+        software developer and contribute to innovative projects.
+    </p>
+</section>
+
+<section id="education">
+    <h2>Education</h2>
+    <p><strong>B.Tech - Computer Science Engineering</strong> (Pursuing)</p>
+    <p>Intermediate (12th Grade)</p>
+    <p>Secondary School (10th Grade)</p>
+</section>
+
+<section id="skills">
+    <h2>Skills</h2>
+    <div class="skills">
+        <span class="skill">Java</span>
+        <span class="skill">Python</span>
+        <span class="skill">HTML</span>
+        <span class="skill">CSS</span>
+        <span class="skill">JavaScript</span>
+        <span class="skill">Git</span>
+        <span class="skill">GitHub</span>
+        <span class="skill">Problem Solving</span>
+    </div>
+</section>
+
+<section>
+    <h2>Projects</h2>
+
+    <div class="project">
+        <h3>Personal Portfolio Website</h3>
+        <p>A responsive portfolio website showcasing my skills and achievements.</p>
+    </div>
+
+    <div class="project">
+        <h3>Java Applications</h3>
+        <p>Developed Java-based programs for learning object-oriented programming concepts.</p>
+    </div>
+
+    <div class="project">
+        <h3>Frontend Practice Projects</h3>
+        <p>Created web pages using HTML, CSS, and JavaScript.</p>
+    </div>
+</section>
+
+<section>
+    <h2>Daily Learning Posts</h2>
+    <div class="learning-posts">
+        <div class="post-card github-card">
+            <h3>GitHub Learning</h3>
+            <p>Track my daily learning projects and contributions</p>
+            <a href="https://github.com/basudevinaykumar-maker" target="_blank" class="social-link">Visit GitHub Profile</a>
+            <div class="learning-progress">
+                <p><strong>GitHub Streak:</strong> <span class="progress-value">Active</span></p>
+            </div>
+        </div>
+        
+        <div class="post-card linkedin-card">
+            <h3>LinkedIn Learning</h3>
+            <p>Daily insights and learning milestones shared</p>
+            <a href="https://www.linkedin.com/in/vinay-kumar-750a19331/" target="_blank" class="social-link">Visit LinkedIn Profile</a>
+            <div class="learning-progress">
+                <p><strong>Learning Progress:</strong> <span class="progress-value">75%</span></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="daily-consistency">
+    <h2>Daily Learning Consistency</h2>
+    <div class="consistency-container">
+        <div class="metric-card">
+            <h3>Posts This Week</h3>
+            <p class="metric-value" id="postsThisWeek">Loading...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="weekProgressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <h3>Current Streak (Days)</h3>
+            <p class="metric-value" id="currentStreak">Loading...</p>
+            <p class="metric-label">Consecutive learning days</p>
+        </div>
+
+        <div class="metric-card">
+            <h3>Posting Frequency</h3>
+            <p class="metric-value" id="postingFrequency">Loading...</p>
+            <p class="metric-label">Posts per week average</p>
+        </div>
+
+        <div class="metric-card">
+            <h3>Most Active Day</h3>
+            <p class="metric-value" id="mostActiveDay">Loading...</p>
+            <p class="metric-label">Day with most posts</p>
+        </div>
+    </div>
+
+    <div class="activity-section">
+        <h3>Weekly Activity Chart</h3>
+        <div class="activity-chart" id="activityChart">
+            <div class="chart-bar" style="height: 20%"><span>Mon</span></div>
+            <div class="chart-bar" style="height: 45%"><span>Tue</span></div>
+            <div class="chart-bar" style="height: 60%"><span>Wed</span></div>
+            <div class="chart-bar" style="height: 35%"><span>Thu</span></div>
+            <div class="chart-bar" style="height: 50%"><span>Fri</span></div>
+            <div class="chart-bar" style="height: 70%"><span>Sat</span></div>
+            <div class="chart-bar" style="height: 40%"><span>Sun</span></div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>Career Objective</h2>
+    <p>
+        To secure opportunities that allow me to apply my technical skills,
+        gain industry experience, and grow professionally while contributing
+        to organizational success.
+    </p>
+</section>
+
+<section id="contact" class="contact">
+    <h2>Contact Details</h2>
+    <p><strong>Name:</strong> Vinay Kumar</p>
+    <p><strong>Email:</strong>basudevinaykumar@gmail.com</p>
+    <p><strong>Phone:</strong> +91 8328302502</p>
+    <p><strong>LinkedIn:</strong> https://www.linkedin.com/in/vinay-kumar-750a19331/</p>
+    <p><strong>GitHub:</strong> https://github.com/basudevinaykumar-maker</p>
+</section>
+
+</div>
+
+<footer>
+    <p>© 2026 Vinay Kumar | All Rights Reserved</p>
+</footer>
+
+<script>
+
+document.documentElement.style.scrollBehavior = 'smooth';
+(function(){
+    const navLinks = document.querySelectorAll('.navbar a');
+    const header = document.querySelector('header');
+    function offset(){ return (header ? header.offsetHeight : 0) + 12; }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e){
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if(!target) return;
+            const top = target.getBoundingClientRect().top + window.pageYOffset - offset();
+            window.scrollTo({ top, behavior: 'smooth' });
+        });
+    });
+
+    // Highlight active nav link on scroll
+    window.addEventListener('scroll', function(){
+        const fromTop = window.scrollY + offset() + 6;
+        navLinks.forEach(link => {
+            const section = document.querySelector(link.hash);
+            if(!section) return;
+            if(section.offsetTop <= fromTop && section.offsetTop + section.offsetHeight > fromTop){
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    });
+})();
+</script>
+
+</body>
+</html>
+
